@@ -1,0 +1,17 @@
+<?php
+session_start();
+require_once __DIR__ . '/../includes/config.php';
+if (empty($_SESSION['funcionario_id'])) {
+    header('Location: ../paginas/conta/login_funcionario.php');
+    exit;
+}
+
+function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
+
+$stmt=$pdo->query("SELECT COUNT(*) FROM produtos"); $totalProdutos=(int)$stmt->fetchColumn();
+$stmt=$pdo->query("SELECT COALESCE(SUM(estoque),0) FROM produtos"); $totalEstoque=(int)$stmt->fetchColumn();
+$stmt=$pdo->query("SELECT COUNT(*) FROM pedidos"); $totalPedidos=(int)$stmt->fetchColumn();
+$stmt=$pdo->query("SELECT COUNT(*) FROM produtos WHERE estoque <= 5"); $estoqueBaixo=(int)$stmt->fetchColumn();
+$ultimos=$pdo->query("SELECT p.id,p.nome,p.preco,p.estoque,c.nome categoria FROM produtos p INNER JOIN categorias c ON c.id=p.categoria_id ORDER BY p.id DESC LIMIT 8")->fetchAll();
+?>
+<!doctype html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Dashboard - Mãos de Fada</title><link rel="stylesheet" href="admin.css"><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet"></head><body><div class="admin-wrap"><header class="admin-top"><div class="brand">Mãos de Fada<small>Painel do funcionário</small></div><div class="admin-user"><span>Olá, <strong><?= h($_SESSION['funcionario_nome'] ?? 'Funcionário') ?></strong></span><a class="btn btn-light btn-small" href="logout.php">Sair</a></div></header><div class="layout"><aside class="sidebar"><a class="active" href="index.php">📊 Dashboard</a><a class="" href="produtos.php">📦 Produtos</a><a class="" href="adicionar_produto.php">➕ Adicionar produto</a><a class="" href="estoque.php">📋 Estoque</a><a class="" href="pedidos.php">🛒 Pedidos</a></aside><main class="content"><h1 class="title">Dashboard</h1><p class="subtitle">Resumo da loja e acesso rápido às tarefas administrativas.</p><div class="cards"><div class="card"><div class="stat-label">Produtos</div><div class="stat"><?= $totalProdutos ?></div></div><div class="card"><div class="stat-label">Unidades em estoque</div><div class="stat"><?= $totalEstoque ?></div></div><div class="card"><div class="stat-label">Pedidos</div><div class="stat"><?= $totalPedidos ?></div></div><div class="card"><div class="stat-label">Estoque baixo</div><div class="stat"><?= $estoqueBaixo ?></div></div></div><div class="section"><h2>Produtos recentes</h2><div class="table-wrap"><table><tr><th>ID</th><th>Produto</th><th>Categoria</th><th>Preço</th><th>Estoque</th><th>Ações</th></tr><?php foreach($ultimos as $p): ?><tr><td><?= h($p['id']) ?></td><td><?= h($p['nome']) ?></td><td><?= h($p['categoria']) ?></td><td>R$ <?= number_format($p['preco'],2,',','.') ?></td><td class="<?= $p['estoque']<=5?'low':'ok' ?>"><?= h($p['estoque']) ?></td><td><a class="btn btn-light btn-small" href="editar_produto.php?id=<?= h($p['id']) ?>">Editar</a></td></tr><?php endforeach; ?></table></div></div><div class="section"><h2>Ações rápidas</h2><div class="actions"><a class="btn btn-primary" href="adicionar_produto.php">Adicionar produto</a><a class="btn btn-light" href="estoque.php">Controlar estoque</a><a class="btn btn-light" href="pedidos.php">Ver pedidos</a></div></div></main></div></div></body></html>

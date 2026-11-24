@@ -1,0 +1,14 @@
+<?php
+session_start();
+require_once __DIR__ . '/../includes/catalogo.php';
+if (empty($_SESSION['funcionario_id'])) {
+    header('Location: ../paginas/conta/login_funcionario.php');
+    exit;
+}
+
+function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
+
+$produtos=$pdo->query("SELECT p.*,c.nome categoria FROM produtos p INNER JOIN categorias c ON c.id=p.categoria_id ORDER BY p.id DESC")->fetchAll();
+$msg=$_GET['msg']??'';
+?>
+<!doctype html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Produtos - Mãos de Fada</title><link rel="stylesheet" href="admin.css"><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet"></head><body><div class="admin-wrap"><header class="admin-top"><div class="brand">Mãos de Fada<small>Painel do funcionário</small></div><div class="admin-user"><span>Olá, <strong><?= h($_SESSION['funcionario_nome'] ?? 'Funcionário') ?></strong></span><a class="btn btn-light btn-small" href="logout.php">Sair</a></div></header><div class="layout"><aside class="sidebar"><a class="" href="index.php">📊 Dashboard</a><a class="active" href="produtos.php">📦 Produtos</a><a class="" href="adicionar_produto.php">➕ Adicionar produto</a><a class="" href="estoque.php">📋 Estoque</a><a class="" href="pedidos.php">🛒 Pedidos</a></aside><main class="content"><h1 class="title">Produtos</h1><p class="subtitle">Cadastre, edite ou remova produtos do catálogo.</p><?php if($msg): ?><div class="alert success"><?= h($msg) ?></div><?php endif; ?><div class="section"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:16px"><h2>Catálogo</h2><a class="btn btn-primary" href="adicionar_produto.php">+ Novo produto</a></div><div class="table-wrap"><table><tr><th>ID</th><th>Imagem</th><th>Produto</th><th>Categoria</th><th>Preço</th><th>Estoque</th><th>Promoção</th><th>Ações</th></tr><?php foreach($produtos as $p): ?><tr><td><?= h($p['id']) ?></td><td><img class="product-thumb" src="<?= h(imagemProduto($p)) ?>" alt="" onerror="this.onerror=null;this.src='<?= h(rtrim(BASE_URL, '/')) ?>/assets/img/produtos/sem-imagem.svg';"></td><td><?= h($p['nome']) ?></td><td><?= h($p['categoria']) ?></td><td>R$ <?= number_format($p['preco'],2,',','.') ?></td><td class="<?= $p['estoque']<=5?'low':'ok' ?>"><?= h($p['estoque']) ?></td><td><?= !empty($p['promocao'])?'Sim':'Não' ?></td><td><div class="actions"><a class="btn btn-light btn-small" href="editar_produto.php?id=<?= h($p['id']) ?>">Editar</a><a class="btn btn-danger btn-small" href="excluir_produto.php?id=<?= h($p['id']) ?>" onclick="return confirm('Excluir este produto?')">Excluir</a></div></td></tr><?php endforeach; ?></table></div></div></main></div></div></body></html>

@@ -1,0 +1,13 @@
+USE maos_de_fada;
+
+CREATE TABLE IF NOT EXISTS funcionarios (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    senha VARCHAR(255) NOT NULL,
+    ativo TINYINT(1) NOT NULL DEFAULT 1,
+    data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+INSERT INTO funcionarios (id, nome, senha, ativo)
+SELECT 1001, 'Administrador', '$2y$12$4AtQdExN.lwQs9vUfLBx9.JHZigXadNc4fvJ8bs6a47eTtCQI2vgW', 1
+WHERE NOT EXISTS (SELECT 1 FROM funcionarios WHERE id = 1001);
